@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard - LiftUp GYM</title>
+    <link rel="stylesheet" href="Login.css">
+ 
+    <style>
+        .dashboard-container {
+    width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 8px 8px 20px rgb(128, 128, 128);
+    border-radius: 10px;
+    text-align: center;
+}
+
+#user-info {
+    margin-bottom: 20px;
+}
+
+button {
+    background-color: #29a396;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 50px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #238673;
+}
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1 class="heading">Welcome to LiftUp GYM</h1>
+    </header>
+
+    <div class="dashboard-container">
+        <h2>Your Dashboard</h2>
+
+        <div id="user-info">
+            <!-- User Info will be populated here -->
+        </div>
+
+        <button id="logout-btn">Logout</button>
+    </div>
+
+
+
+
+    <script type="module">
+        import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQw9mT4rrondJbe1aO8IqhA7irvigKmdg",
+            authDomain: "gymdata-6ceea.firebaseapp.com",
+            projectId: "gymdata-6ceea",
+            storageBucket: "gymdata-6ceea.firebasestorage.app",
+            messagingSenderId: "891840403380",
+            appId: "1:891840403380:web:0cd986eb066471b035c4e1",
+            measurementId: "G-7TPRSKTMYD"
+        };
+    
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+    
+        // Check if the user is logged in
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // User is logged in, fetch user data from Firestore
+                const userDocRef = doc(db, "Users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+    
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    document.getElementById("user-info").innerHTML = `
+                        <p>Name: ${userData.name}</p>
+                        <p>Email: ${userData.email}</p>
+                        <p>Account Created On: ${userData.createdAt.toDate().toLocaleDateString()}</p>
+                    `;
+                } else {
+                    console.log("No user data found");
+                }
+            } else {
+                // User is not logged in, redirect to login page
+                window.location.href = "/login.html";
+            }
+        });
+    
+        // Handle logout
+        document.getElementById("logout-btn").addEventListener("click", async () => {
+            try {
+                await signOut(auth);
+                alert("Logged out successfully!");
+                window.location.href = "/login.html"; // Redirect to login page after logout
+            } catch (error) {
+                console.error("Error logging out: ", error.message);
+                alert("Error during logout.");
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,169 @@
+<!--Login: dhruvi123@gmail.com
+    PW: dhruvi@123 -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>LiftUp GYM (Login) </title>
+    <link rel="stylesheet" href="Login.css">
+
+    <script defer src="Login.js"></script>
+
+</head>
+ 
+
+<body>
+    <header>
+        <h1 class="heading">LiftUp GYM</h1>
+    </header>
+ 
+
+    <!-- container div -->
+    <div class="container">
+ 
+        <!-- upper button section to select the login or signup form -->
+        <div class="slider"></div>
+        <div class="btn">
+            <button class="login">Login</button>
+            <button class="signup">Signup</button>
+        </div>
+ 
+        <!-- Form section that contains the login and the signup form -->
+        <div class="form-section">
+
+            <!-- login form  -->
+            <div id="signInMsg" class="msgDiv" style="display: none;"></div>
+            <div class="login-box">
+                <input type="email" class="email ele" placeholder="YourEmail@gmail.com"><br><br>
+                <input type="password" class="password ele" placeholder="Enter Password"><br><br>
+                <button class="clkbtn">Login</button><br><br>
+            </div>
+ 
+
+            <!-- signup form -->
+            <div id="signUpMsg" class="msgDiv" style="display: none;"></div>
+            <div class="signup-box">
+                <input type="text" id="name" class="name ele" placeholder="Enter your name"><br><br>
+                <input type="email" id="email" class="email ele" placeholder="YourEmail@email.com"><br><br>
+                <input type="password" id="pw" class="password ele" placeholder="Enter Password"><br><br>
+                <input type="password" id="cnfmPw" class="password ele" placeholder="Confirm Password"><br><br>
+                <button class="clkbtn" id="submitSignUp">Signup</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"; 
+        import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQw9mT4rrondJbe1aO8IqhA7irvigKmdg",
+            authDomain: "gymdata-6ceea.firebaseapp.com",
+            projectId: "gymdata-6ceea",
+            storageBucket: "gymdata-6ceea.firebasestorage.app",
+            messagingSenderId: "891840403380",
+            appId: "1:891840403380:web:0cd986eb066471b035c4e1",
+            measurementId: "G-7TPRSKTMYD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        console.log("Firebase initialized:", app);
+
+
+        // Handle Login
+        document.querySelector(".login-box .clkbtn").addEventListener("click", async () => {
+            const email = document.querySelector(".login-box .email").value;
+            const password = document.querySelector(".login-box .password").value;
+
+            if (!email || !password) {
+                alert("Please enter both email and password.");
+                return;
+            }
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                alert("Login successful!");
+
+                // Store login info in the "Members" collection
+                await addDoc(collection(db, "Members"), {
+                    uid: userCredential.user.uid,
+                    email: email,
+                    lastLogin: new Date(),
+                    isActive: true // Add additional fields as needed
+                });
+
+                // Redirect to user dashboard or another page
+                window.location.href = "/UserDash.html";
+            } catch (error) {
+                console.error("Error during login: ", error.message);
+                alert("Login failed. Please check your credentials.");
+            }
+        });
+
+
+        // Handle Signup
+        document.querySelector("#submitSignUp").addEventListener("click", async () => {
+            const name = document.querySelector("#name").value;
+            const email = document.querySelector("#email").value;
+            const password = document.querySelector("#pw").value;
+            const confirmPassword = document.querySelector("#cnfmPw").value;
+
+            if (!name || !email || !password || !confirmPassword) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert("Passwords do not match!");
+                return;
+            }
+
+            try {
+                // Create user with email and password
+                console.log("Attempting to create user...");
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                console.log("User created successfully:", user);
+
+                // Store additional user information in Firestore
+                await addDoc(collection(db, "Users"), {
+                    uid: user.uid,
+                    name: name,
+                    email: email,
+                });
+
+                alert("Signup successful!");
+                // Redirect to login page or user dashboard
+                window.location.href = "/login.html"; // Redirect to login page after signup
+            } catch (error) {
+                console.error("Error during signup: ", error.message);
+
+                // Display specific error messages based on the error code
+                let errorMessage = "Signup failed. Please try again.";
+
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = "This email is already in use. Please try a different email.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "The email address is not valid.";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = "The password is too weak. Please choose a stronger password.";
+                }
+
+                alert(errorMessage);
+            }
+        });
+    </script>
+
+</body>
+ 
+
+</html>
+ 

@@ -1,0 +1,257 @@
+<!-- Admin: admin123@gmail.com
+     PW: admin@123-->
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <style>
+      body {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: rgb(231, 231, 231);
+        }
+        h2, h3 {
+            color: #29a396;
+        }
+        #admin-login, #admin-dashboard, #add-member-form, #member-bills-list, #notifications-list {
+            width: 500px;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 8px 8px 20px rgb(128, 128, 128);
+            border-radius: 10px;
+            margin: 10px auto;
+        }
+        input, button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px;
+            width: 90%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        button {
+            background-color: #29a396;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #238673;
+        }
+    </style>
+  <!-- Firebase Configuration 
+
+  
+
+  <script type="module" src="Init.js"></script>
+  import { initializeApp } from "firebase/app";
+  import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+  import { getAuth, signInWithEmailAndPassword } from "firebase/auth"; -->
+
+  </head>
+
+
+  <body>
+    <!-- Admin Login -->
+    <div id="admin-login">
+      <h2>Admin Login</h2>
+      <form id="login-form">
+        <input type="email" id="admin-email" placeholder="Admin Email" required><br>
+        <input type="password" id="admin-password" placeholder="Admin Password" required><br>
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  
+    <!-- Admin Dashboard (Visible after login) -->
+    <div id="admin-dashboard" style="display:none;">
+      <h2>Welcome Admin</h2>
+      <button id="add-member-btn">Add Member</button>
+      <div id="members-list"></div>
+    </div>
+
+    <!--Add Member Form (Visible after admin login)-->
+
+    <div id="add-member-form" style="display:none;">
+      <h3>Add Member</h3>
+      <input type="text" id="member-name" placeholder="Member Name" required><br>
+      <input type="email" id="member-email" placeholder="Member Email" required><br>
+      <input type="text" id="membership-type" placeholder="Membership Type (e.g., Monthly)" required><br>
+      <button type="button" onclick="addMember()">Add Member</button>
+    </div>
+
+
+    <!-- Display Member Bills 
+    <div id="member-bills-list"></div>
+
+
+     Display Notifications 
+    <div id="notifications-list"></div> -->
+
+
+
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js"; 
+    import { getFirestore, collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCQw9mT4rrondJbe1aO8IqhA7irvigKmdg",
+      authDomain: "gymdata-6ceea.firebaseapp.com",
+      projectId: "gymdata-6ceea",
+      storageBucket: "gymdata-6ceea.firebasestorage.app",
+      messagingSenderId: "891840403380",
+      appId: "1:891840403380:web:0cd986eb066471b035c4e1",
+      measurementId: "G-7TPRSKTMYD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    console.log("Firebase initialized:", app);
+
+
+    // Admin login functionality
+    document.getElementById('login-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      
+      const email = document.getElementById('admin-email').value;
+      const password = document.getElementById('admin-password').value;
+      
+      /*firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(() => {
+          // On success, hide the login form and show the dashboard
+          document.getElementById('admin-login').style.display = 'none';
+          document.getElementById('admin-dashboard').style.display = 'block';
+          loadMembers();
+        })
+        .catch((error) => {
+          console.error("Login failed: ", error.message);
+        });*/
+
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          console.log("Admin logged in successfully");
+          // Show the dashboard and hide the login form
+          document.getElementById('admin-login').style.display = 'none';
+          document.getElementById('admin-dashboard').style.display = 'block';
+          loadMembers();
+        } catch (error) {
+          console.error("Login failed: ", error.message);
+          alert("Invalid email or password!");
+        }
+      });
+  
+
+    //Show the Add Member form when the 'Add Member' button is clicked
+    document.getElementById('add-member-btn').addEventListener('click', () => {
+    document.getElementById('add-member-form').style.display = 'block';
+    });
+
+    window.addMember = async function addMember() {
+      const name = document.getElementById('member-name').value;
+      const email = document.getElementById('member-email').value;
+      const membershipType = document.getElementById('membership-type').value;
+    
+      // Add member to Firestore collection
+      /*db.collection('members').add({
+        name: name,
+        email: email,
+        membershipType: membershipType,
+        startDate: new Date(),
+        endDate: new Date(),
+        isActive: true
+      }).then(() => {
+        alert('Member added successfully');
+        loadMembers();  // Refresh member list
+      }).catch((error) => {
+        console.error('Error adding member: ', error);
+      });*/
+
+
+      try {
+        await addDoc(collection(db, "Members"), {
+          name: name,
+          email: email,
+          membershipType: membershipType,
+          startDate: new Date(),
+          isActive: true,
+        });
+        alert("Member added successfully");
+        document.getElementById('add-member-form').reset();
+        loadMembers(); // Refresh member list
+      } catch (error) {
+        console.error("Error adding member: ", error.message);
+      }
+    }
+
+
+    // Load members data from Firestore
+    async function loadMembers() {
+      const membersListDiv = document.getElementById('members-list');
+      /*db.collection('Members').get().then((querySnapshot) => {
+        membersListDiv.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+          const memberData = doc.data();
+          const memberItem = document.createElement('div');
+          memberItem.innerHTML = `<p>${memberData.name} (${memberData.membershipType})</p>`;
+          membersListDiv.appendChild(memberItem);
+        });
+      });*/
+
+
+      try {
+        const querySnapshot = await getDocs(collection(db, "Members"));
+        membersListDiv.innerHTML = ''; // Clear previous data
+        querySnapshot.forEach((doc) => {
+          const memberData = doc.data();
+          const memberItem = document.createElement('div');
+          memberItem.innerHTML = `<p>${memberData.name} (${memberData.membershipType})</p>`;
+          membersListDiv.appendChild(memberItem);
+        });
+      } catch (error) {
+        console.error("Error loading members: ", error.message);
+      }
+    }
+
+
+
+    // Fetch and display notifications
+    function loadNotifications() {
+      const notificationsListDiv = document.getElementById('notifications-list');
+      db.collection('Notifications').get().then((querySnapshot) => {
+        notificationsListDiv.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+          const notificationData = doc.data();
+          const notificationItem = document.createElement('div');
+          notificationItem.innerHTML = `<p>${notificationData.message}</p>`;
+          notificationsListDiv.appendChild(notificationItem);
+        });
+      });
+    }
+
+
+    // Fetch and display bills for a particular member
+    function loadMemberBills(memberId) {
+      const billsListDiv = document.getElementById('member-bills-list');
+      db.collection('Bills').where("Member Id", "==", memberId).get().then((querySnapshot) => {
+        billsListDiv.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+          const billData = doc.data();
+          const billItem = document.createElement('div');
+          billItem.innerHTML = `<p>Amount: ${billData.amount} | Due: ${billData.dueDate}</p>`;
+          billsListDiv.appendChild(billItem);
+        });
+      });
+    }
+  </script>
+  
